@@ -10,5 +10,8 @@ $ pip install git+https://github.com/OpenRobot-Packages/API-Wrapper
 ```
 Note: This might be different from yours.
 
+If that does not work, maybe take a look at https://github.com/OpenRobot-Packages/OpenRobot-Packages/blob/main/README.md#i-failed-to-install-a-openrobot-packages-repo-what-should-i-do
+If it still does not work, feel free to make an Issue in https://github.com/OpenRobot-Packages/API-Wrapper
+
 # License:
 MIT
