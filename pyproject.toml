@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "OpenRobot-API-Wrapper"
+version = "0.1.0"
+description = "A API Wrapper for the official OpenRobot API (https://api.openrobot.xyz)."
+authors = ["OpenRobot <openrobot@openrobot.xyz>", "proguy914629 <proguy914629@openrobot.xyz>"]
+license = "MIT"
+packages = [
+    { include = "discord" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.5"
+"discord.py" = { git = "https://github.com/OpenRobot-Packages/OpenRobot-Packages.git", branch = "main" }
+"aiohttp" = ">=3.7.4"
+"requests" = ">=2.25.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
