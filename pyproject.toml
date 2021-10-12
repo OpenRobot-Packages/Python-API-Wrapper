@@ -5,7 +5,7 @@ description = "A API Wrapper for the official OpenRobot API (https://api.openrob
 authors = ["OpenRobot <openrobot@openrobot.xyz>", "proguy914629 <proguy914629@openrobot.xyz>"]
 license = "MIT"
 packages = [
-    { include = "discord" }
+    { include = "openrobot" }
 ]
 
 [tool.poetry.dependencies]
