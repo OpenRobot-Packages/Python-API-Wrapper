@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.5"
-"discord.py" = { git = "https://github.com/OpenRobot-Packages/OpenRobot-Packages.git", branch = "main" }
+"OpenRobot-Packages" = { git = "https://github.com/OpenRobot-Packages/OpenRobot-Packages.git", branch = "main" }
 "aiohttp" = ">=3.7.4"
 "requests" = ">=2.25.1"
 
