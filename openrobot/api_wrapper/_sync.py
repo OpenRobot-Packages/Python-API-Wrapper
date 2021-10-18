@@ -83,9 +83,9 @@ class SyncClient:
         js = self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
 
-    def celebrity(self, url: str) -> CelebrityResult:
+    def celebrity(self, url: str) -> typing.List[CelebrityResult]:
         js = self._request('GET', '/api/celebrity', params={'url': url})
-        return CelebrityResult(js)
+        return [CelebrityResult(data) for data in js]
 
     def ocr(self, *, url: str = None, fp: io.BytesIO = None) -> OCRResult:
         if not url and not fp:

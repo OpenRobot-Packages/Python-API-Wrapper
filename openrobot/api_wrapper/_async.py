@@ -85,9 +85,9 @@ class AsyncClient:
         js = await self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
 
-    async def celebrity(self, url: str) -> CelebrityResult:
+    async def celebrity(self, url: str) -> typing.List[CelebrityResult]:
         js = await self._request('GET', '/api/celebrity', params={'url': url})
-        return CelebrityResult(js)
+        return [CelebrityResult(data) for data in js]
 
     async def ocr(self, *, url: str = None, fp: io.BytesIO = None) -> OCRResult:
         if not url and not fp:
