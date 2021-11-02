@@ -85,6 +85,10 @@ class AsyncClient:
         js = await self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
 
+    async def nsfw_check(self, url: str) -> NSFWCheckResult:
+        js = await self._request('GET', '/api/nsfw-check', params={'url': url})
+        return NSFWCheckResult(js)
+
     async def celebrity(self, url: str) -> typing.List[CelebrityResult]:
         js = await self._request('GET', '/api/celebrity', params={'url': url})
         return [CelebrityResult(data) for data in js]

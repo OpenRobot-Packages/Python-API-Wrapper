@@ -77,11 +77,15 @@ class SyncClient:
 
                 raise cls
 
-        # Methods to query to API:
+    # Methods to query to API:
 
     def lyrics(self, query: str) -> LyricResult:
         js = self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
+
+    def nsfw_check(self, url: str) -> NSFWCheckResult:
+        js = self._request('GET', '/api/nsfw-check', params={'url': url})
+        return NSFWCheckResult(js)
 
     def celebrity(self, url: str) -> typing.List[CelebrityResult]:
         js = self._request('GET', '/api/celebrity', params={'url': url})

@@ -14,6 +14,21 @@ class LyricResult(OpenRobotAPIBaseResult):
         self.artist = js['artist']
         self.lyrics = js['lyrics']
 
+class NSFWCheckResult(OpenRobotAPIBaseResult):
+    """The result of the /api/nsfw-check endpoint."""
+    def __init__(self, js):
+        super().__init__(js)
+
+        self.labels: typing.List[self.Label] = [self.Label(x) for x in js['labels']]
+        self.score: int = js['nsfw_score']
+
+    class Label:
+        """NSFW Label."""
+        def __init__(self, js):
+            self.confidence: int = js['Confidence']
+            self.parent_name: str = js['ParentName']
+            self.name: str = js['Name']
+
 class CelebrityResult(OpenRobotAPIBaseResult):
     """The result of the /api/celebrity endpoint."""
     def __init__(self, js):
