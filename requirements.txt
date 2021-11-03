@@ -1,3 +1,0 @@
-main @ git+https://github.com/OpenRobot-Packages/OpenRobot-Packages@main#egg=OpenRobot-Packages
-aiohttp
-requests
