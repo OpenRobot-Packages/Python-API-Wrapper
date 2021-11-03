@@ -1,18 +1,26 @@
 [tool.poetry]
 name = "OpenRobot-API-Wrapper"
-version = "0.1.0"
+version = "0.2.0"
 description = "A API Wrapper for the official OpenRobot API (https://api.openrobot.xyz)."
-authors = ["OpenRobot <openrobot@openrobot.xyz>", "proguy914629 <proguy914629@openrobot.xyz>"]
+authors = ["OpenRobot Packages <openrobot@openrobot.xyz>", "proguy914629 <proguy914629@openrobot.xyz>"]
 license = "MIT"
 packages = [
     { include = "openrobot" }
 ]
 
 [tool.poetry.dependencies]
-python = "^3.5"
+python = ">=3.6,<4.0"
 "OpenRobot-Packages" = { git = "https://github.com/OpenRobot-Packages/Python-OpenRobot-Packages.git", branch = "main" }
 "aiohttp" = ">=3.7.4"
 "requests" = ">=2.25.1"
+
+"sphinx" = {version = "^4.2.0", optional = true}
+"karma_sphinx_theme" = {version = "^0.0.8", optional = true}
+"sphinxcontrib-asyncio" = {version = "^0.3.0", optional = true}
+"sphinx-nervproject-theme" = {version = "^2.0.4", optional = true}
+
+[tool.poetry.extras]
+docs = ["sphinx", "karma_sphinx_theme", "sphinxcontrib-asyncio", "sphinx-nervproject-theme"]
 
 [tool.poetry.dev-dependencies]
 

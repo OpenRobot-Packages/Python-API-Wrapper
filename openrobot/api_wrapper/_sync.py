@@ -5,6 +5,7 @@ import io
 import typing
 from .error import *
 from .results import *
+from .translate import Translate
 
 try:
     from urllib.parse import quote_plus as quote
@@ -16,6 +17,22 @@ except:
         warnings.warn('urllib.parse.quote_plus and urllib.parse.quote cannot be found. Things might not be parsed well.')
 
 class SyncClient:
+    """Sync Client for OpenRobot API.
+
+    Parameters
+    ----------
+    token: Optional[:class:`str`]
+        The token to be used to authorize to the API. Defaults 
+        to ``I-Am-Testing``.
+    ignore_warning: Optional[:class:`bool`]
+        Ignores the ``I-Am-Testing`` Warning. Defaults to ``False``.
+
+    Attributes
+    ----------
+    token: :class:`str`
+        The token used to authorize to the API.
+    """
+
     def __init__(self, token: str = 'I-Am-Testing', *, ignore_warning = False):
         if not token:
             raise NoTokenProvided()
@@ -24,7 +41,7 @@ class SyncClient:
 
         self.token = str(token)
 
-    # Important methods, but should be used un-regularly by the User itself.
+    # Important and internal methods, but should be used un-regularly by the User itself.
 
     def _get_authorization_headers(self, token: str = None, *, header = True):
         token = str(token or self.token)
@@ -61,11 +78,11 @@ class SyncClient:
 
             js = r.json()
             if r.status_code == 403:
-                raise Forbidden(js)
+                raise Forbidden(r, js)
             elif r.status_code == 400:
-                raise BadRequest(js)
+                raise BadRequest(r, js)
             elif r.status_code == 500:
-                raise InternalServerError(js)
+                raise InternalServerError(r, js)
             elif 200 <= r.status_code < 300:
                 if raw:
                     return r
@@ -74,24 +91,117 @@ class SyncClient:
             else:
                 cls = OpenRobotAPIError(js)
                 cls.raw = js
+                cls.response = r
 
                 raise cls
 
     # Methods to query to API:
 
     def lyrics(self, query: str) -> LyricResult:
+        """
+        Gets the lyrics from the API.
+
+        Parameters
+        ----------
+        query: :class:`str`
+            Searches for the lyrics from the query.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`LyricResult`
+            The Lyrics Result returned by the API.
+        """
+
         js = self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
 
     def nsfw_check(self, url: str) -> NSFWCheckResult:
+        """
+        Queries an NSFW Check to the API.
+
+        Parameters
+        ----------
+        url: :class:`str`
+            The Image URL to check for.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`NSFWCheckResult`
+            The NSFW Check Result returned by the API.
+        """
+
         js = self._request('GET', '/api/nsfw-check', params={'url': url})
         return NSFWCheckResult(js)
 
     def celebrity(self, url: str) -> typing.List[CelebrityResult]:
+        """
+        Detects the celebrities in the image.
+
+        Parameters
+        ----------
+        url: :class:`str`
+            The Image URL.      
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        List[:class:`CelebrityResult`]
+            The celebrities detected.
+        """
+
         js = self._request('GET', '/api/celebrity', params={'url': url})
         return [CelebrityResult(data) for data in js]
 
     def ocr(self, *, url: str = None, fp: io.BytesIO = None) -> OCRResult:
+        """
+        Reads text from a image.
+
+        Parameters
+        ----------
+        source: Union[:class:`str`, :class:`io.BytesIO`]
+            The URL/Bytes of the image.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`OCRResult`
+            The OCR/Text found.
+        """
+
         if not url and not fp:
             raise OpenRobotAPIError('url and fp kwargs cannot be empty.')
         elif url and fp:
@@ -106,21 +216,5 @@ class SyncClient:
 
     @property
     def translate(self):
-        return self.Translate(self)
-
-    class Translate:
-        def __init__(self, client):
-            self._client = client
-
-        def __call__(self, text: str, to_lang: str, from_lang: typing.Optional[str] = 'auto') -> TranslateResult:
-            js = self._client._request('/api/translate', params={
-                'text': text,
-                'to_lang': to_lang,
-                'from_lang': from_lang
-            })
-            
-            return TranslateResult(js)
-
-        def languages(self):
-            js = self._client._request('/api/translate/languages')
-            return js
+        """:class:`Translate`: The Translate client."""
+        return Translate(self, False)

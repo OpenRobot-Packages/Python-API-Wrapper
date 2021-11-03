@@ -6,6 +6,7 @@ import io
 import typing
 from .error import *
 from .results import *
+from .translate import Translate
 
 try:
     from urllib.parse import quote_plus as quote
@@ -17,7 +18,31 @@ except:
         warnings.warn('urllib.parse.quote_plus and urllib.parse.quote cannot be found. Things might not be parsed well.')
 
 class AsyncClient:
-    def __init__(self, token: str = 'I-Am-Testing', *, loop: asyncio.AbstractEventLoop = None, ignore_warning = False):
+    """Async Client for OpenRobot API.
+
+    Parameters
+    ----------
+    token: Optional[:class:`str`]
+        The token to be used to authorize to the API. Defaults 
+        to ``I-Am-Testing``.
+    session: Optional[:class:`aiohttp.ClientSession`]
+        The session to be used. Defaults to ``None``.
+    loop: Optional[:class:`asyncio.AbstractEventLoop`]
+        The loop to be used. Defaults to :meth:`asyncio.get_event_loop`.
+    ignore_warning: Optional[:class:`bool`]
+        Ignores the ``I-Am-Testing`` Warning. Defaults to ``False``.
+
+    Attributes
+    ----------
+    token: :class:`str`
+        The token used to authorize to the API.
+    loop: :class:`asyncio.AbstractEventLoop`
+        The loop that is used.
+    session: Optional[:class:`aiohttp.ClientSession`]
+        The session used. ``None`` if not specified.
+    """
+
+    def __init__(self, token: str = 'I-Am-Testing', *, session: aiohttp.ClientSession = None, loop: asyncio.AbstractEventLoop = None, ignore_warning: bool = False):
         if not token:
             raise NoTokenProvided()
         elif token == 'I-Am-Testing' and not ignore_warning:
@@ -27,7 +52,12 @@ class AsyncClient:
 
         self.loop = loop or asyncio.get_event_loop()
 
-    # Important methods, but should be used un-regularly by the User itself.
+        self.session = session if isinstance(session, aiohttp.ClientSession) else None
+
+        if self.session:
+            self.session._loop = self.loop
+
+    # Important and internal methods, but should be used un-regularly by the User itself.
 
     def _get_authorization_headers(self, token: str = None, *, header = True):
         token = str(token or self.token)
@@ -36,12 +66,11 @@ class AsyncClient:
         else:
             return {'Authorization': token}
 
-    async def _request(self, method: str, url: str, **kwargs):
+    async def _request(self, method: str, url: str, **kwargs) -> typing.Union[dict, aiohttp.ClientResponse]:
         url = str(url)
 
         headers = self._get_authorization_headers()
         if kwargs.get('headers') and isinstance(kwargs.get('headers'), dict):
-            hdr = kwargs.pop('headers')
             kwargs['headers'].update(headers)
         else:
             kwargs['headers'] = headers
@@ -58,16 +87,16 @@ class AsyncClient:
             url = ('https://api.openrobot.xyz/api' + url)
         else:
             raise TypeError('URL is not a valid HTTP/HTTPs URL.')
-
-        async with aiohttp.ClientSession(loop=self.loop) as sess:
-            async with sess.request(method, url, **kwargs) as resp:
+        
+        if self.session:
+            async with self.session.request(method, url, **kwargs) as resp:
                 js = await resp.json()
                 if resp.status == 403:
-                    raise Forbidden(js)
+                    raise Forbidden(resp, js)
                 elif resp.status == 400:
-                    raise BadRequest(js)
+                    raise BadRequest(resp, js)
                 elif resp.status == 500:
-                    raise InternalServerError(js)
+                    raise InternalServerError(resp, js)
                 elif 200 <= resp.status < 300:
                     if raw:
                         return resp
@@ -76,56 +105,155 @@ class AsyncClient:
                 else:
                     cls = OpenRobotAPIError(js)
                     cls.raw = js
+                    cls.response = resp
 
                     raise cls
+        else:
+            async with aiohttp.ClientSession(loop=self.loop) as sess:
+                async with sess.request(method, url, **kwargs) as resp:
+                    js = await resp.json()
+                    if resp.status == 403:
+                        raise Forbidden(resp, js)
+                    elif resp.status == 400:
+                        raise BadRequest(resp, js)
+                    elif resp.status == 500:
+                        raise InternalServerError(resp, js)
+                    elif 200 <= resp.status < 300:
+                        if raw:
+                            return resp
+                        else:
+                            return js
+                    else:
+                        cls = OpenRobotAPIError(js)
+                        cls.raw = js
+                        cls.response = resp
+
+                        raise cls
 
     # Methods to query to API:
 
     async def lyrics(self, query: str) -> LyricResult:
+        """|coro|
+        
+        Gets the lyrics from the API.
+
+        Parameters
+        ----------
+        query: :class:`str`
+            Searches for the lyrics from the query.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`LyricResult`
+            The Lyrics Result returned by the API.
+        """
+        
         js = await self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
 
     async def nsfw_check(self, url: str) -> NSFWCheckResult:
+        """|coro|
+        
+        Queries an NSFW Check to the API.
+
+        Parameters
+        ----------
+        url: :class:`str`
+            The Image URL to check for.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`NSFWCheckResult`
+            The NSFW Check Result returned by the API.
+        """
+
         js = await self._request('GET', '/api/nsfw-check', params={'url': url})
         return NSFWCheckResult(js)
 
     async def celebrity(self, url: str) -> typing.List[CelebrityResult]:
+        """|coro|
+        
+        Detects the celebrities in the image.
+
+        Parameters
+        ----------
+        url: :class:`str`
+            The Image URL.      
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        List[:class:`CelebrityResult`]
+            The celebrities detected.
+        """
+        
         js = await self._request('GET', '/api/celebrity', params={'url': url})
         return [CelebrityResult(data) for data in js]
 
-    async def ocr(self, *, url: str = None, fp: io.BytesIO = None) -> OCRResult:
-        if not url and not fp:
-            raise OpenRobotAPIError('url and fp kwargs cannot be empty.')
-        elif url and fp:
-            raise OpenRobotAPIError('url and fp cannot be both not enpty.')
+    async def ocr(self, source: typing.Union[str, io.BytesIO]) -> OCRResult:
+        """|coro|
+        
+        Reads text from a image.
 
-        if url:
-            js = await self._request('POST', '/api/ocr', params={'url': url})
-        else:
+        Parameters
+        ----------
+        source: Union[:class:`str`, :class:`io.BytesIO`]
+            The URL/Bytes of the image.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`OCRResult`
+            The OCR/Text found.
+        """
+
+        if isinstance(source, str):
+            js = await self._request('POST', '/api/ocr', params={'url': source})
+        elif isinstance(source, io.BytesIO):
             data = aiohttp.FormData()
-            data.add_field('file', fp)
+            data.add_field('file', source)
 
             js = await self._request('POST', '/api/ocr', data=data)
+        else:
+            raise OpenRobotAPIError('source is not a string nor a io.BytesIO.')
 
         return OCRResult(js)
 
     @property
-    def translate(self):
-        return self.Translate(self)
-
-    class Translate:
-        def __init__(self, client):
-            self._client = client
-
-        async def __call__(self, text: str, to_lang: str, from_lang: typing.Optional[str] = 'auto') -> TranslateResult:
-            js = await self._client._request('/api/translate', params={
-                'text': text,
-                'to_lang': to_lang,
-                'from_lang': from_lang
-            })
-            
-            return TranslateResult(js)
-
-        async def languages(self):
-            js = await self._client._request('/api/translate/languages')
-            return js
+    def translate(self) -> Translate:
+        """:class:`Translate`: The Translate client."""
+        return Translate(self, True)
