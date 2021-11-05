@@ -1,4 +1,4 @@
-from openrobot.api_wrapper import AsyncClient
+from openrobot.api_wrapper import SyncClient
 
 client = SyncClient(...)
 
