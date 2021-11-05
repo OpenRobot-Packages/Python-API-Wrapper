@@ -30,6 +30,10 @@ Translate
 Results
 -------
 
+.. autoclass:: openrobot.api_wrapper.LyricImages()
+    :members:
+    :inherited-members:
+
 .. autoclass:: openrobot.api_wrapper.LyricResult()
     :members:
     :inherited-members:

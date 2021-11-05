@@ -13,6 +13,22 @@ class OpenRobotAPIBaseResult:
     def __init__(self, js):
         self.raw = js
 
+class LyricImages:
+    """
+    The Lyric's Track Images.
+    
+    Attributes
+    ----------
+    background: Optional[:class:`str`]
+        The background image of the track.
+    track: Optional[:class:`str`]
+        The track image.
+    """
+
+    def __init__(self, js):
+        self.background: typing.Optional[str] = js.get('background')
+        self.track: typing.Optional[str] = js.get('track')
+
 class LyricResult(OpenRobotAPIBaseResult):
     """
     The result of the /api/lyrics endpoint.
@@ -25,6 +41,8 @@ class LyricResult(OpenRobotAPIBaseResult):
         The artist of the song.
     lyrics :class:`str`
         The lyrics of the song. 
+    images: :class:`LyricImages`
+        Represents The Lyric's Track Images.
     """
 
     def __init__(self, js):
@@ -33,6 +51,8 @@ class LyricResult(OpenRobotAPIBaseResult):
         self.title: str = js['title']
         self.artist: str = js['artist']
         self.lyrics: str = js['lyrics']
+
+        self.images = LyricImages(js.get('images', {}))
 
 class NSFWLabel:
     """

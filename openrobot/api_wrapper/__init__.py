@@ -6,4 +6,4 @@ from .translate import *
 
 from . import _async, _sync, translate, results, error
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
