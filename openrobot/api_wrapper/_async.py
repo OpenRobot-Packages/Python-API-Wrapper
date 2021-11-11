@@ -7,6 +7,7 @@ import typing
 from .error import *
 from .results import *
 from .translate import Translate
+from .speech import Speech
 
 try:
     from urllib.parse import quote_plus as quote
@@ -249,7 +250,7 @@ class AsyncClient:
 
             js = await self._request('POST', '/api/ocr', data=data)
         else:
-            raise OpenRobotAPIError('source is not a string nor a io.BytesIO.')
+            raise OpenRobotAPIError('source must be a URL or BytesIO.')
 
         return OCRResult(js)
 
@@ -257,3 +258,8 @@ class AsyncClient:
     def translate(self) -> Translate:
         """:class:`Translate`: The Translate client."""
         return Translate(self, True)
+
+    @property
+    def speech(self) -> Speech:
+        """:class:`Speech`: The Speech client."""
+        return Speech(self, True)

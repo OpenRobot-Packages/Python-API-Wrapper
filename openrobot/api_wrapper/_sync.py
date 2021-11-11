@@ -6,6 +6,7 @@ import typing
 from .error import *
 from .results import *
 from .translate import Translate
+from .speech import Speech
 
 try:
     from urllib.parse import quote_plus as quote
@@ -178,7 +179,7 @@ class SyncClient:
         js = self._request('GET', '/api/celebrity', params={'url': url})
         return [CelebrityResult(data) for data in js]
 
-    def ocr(self, *, url: str = None, fp: io.BytesIO = None) -> OCRResult:
+    def ocr(self, source: typing.Union[str, io.BytesIO]) -> OCRResult:
         """
         Reads text from a image.
 
@@ -202,15 +203,12 @@ class SyncClient:
             The OCR/Text found.
         """
 
-        if not url and not fp:
-            raise OpenRobotAPIError('url and fp kwargs cannot be empty.')
-        elif url and fp:
-            raise OpenRobotAPIError('url and fp cannot be both not enpty.')
-
-        if url:
-            js = self._request('POST', '/api/ocr', params={'url': url})
+        if isinstance(source, str):
+            js = self._request('POST', '/api/ocr', params={'url': source})
+        elif isinstance(source, io.BytesIO):
+            js = self._request('POST', '/api/ocr', files={'upload_file': getattr(source, 'getvalue', lambda: source)()})
         else:
-            js = self._request('POST', '/api/ocr', files={'upload_file': getattr(fp, 'getvalue', lambda: fp)()})
+            raise OpenRobotAPIError('source must be a URL or BytesIO.')
 
         return OCRResult(js)
 
@@ -218,3 +216,8 @@ class SyncClient:
     def translate(self):
         """:class:`Translate`: The Translate client."""
         return Translate(self, False)
+
+    @property
+    def speech(self) -> Speech:
+        """:class:`Speech`: The Speech client."""
+        return Speech(self, False)

@@ -47,7 +47,7 @@ class Translate:
 
         if self._is_async:
             async def _do_translate() -> TranslateResult:
-                js = await self._client._request('/api/translate', params={
+                js = await self._client._request('GET', '/api/translate', params={
                     'text': text,
                     'to_lang': to_lang,
                     'from_lang': from_lang
@@ -55,9 +55,9 @@ class Translate:
                 
                 return TranslateResult(js)
 
-            return _do_translate
+            return _do_translate()
         else:
-            js = self._client._request('/api/translate', params={
+            js = self._client._request('GET', '/api/translate', params={
                 'text': text,
                 'to_lang': to_lang,
                 'from_lang': from_lang
@@ -92,10 +92,10 @@ class Translate:
 
         if self._is_async:
             async def _languages() -> typing.Dict[str, str]:
-                js = await self._client._request('/api/translate/languages')
+                js = await self._client._request('GET', '/api/translate/languages')
                 return js
 
-            return _languages
+            return _languages()
         else:
             js = self._client._request('/api/translate/languages')
             return js

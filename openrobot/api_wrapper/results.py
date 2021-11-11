@@ -275,6 +275,96 @@ class CelebrityResult(OpenRobotAPIBaseResult):
         self.gender: typing.Optional[str] = js['Gender'] # TODO: Maybe make this an enum e.g Gender.female or Gender.male
         self.face: CelebrityFaceProperty = CelebrityFaceProperty(js['Face'])
 
+class SpeechToTextResult(OpenRobotAPIBaseResult):
+    """
+    The result of /api/speech/speech-to-text endpoint.
+
+    Attributes
+    ----------
+    text: :class:`str`
+        The text of the recognized speech.
+    duration: Union[:class:`int`, :class:`float`]
+        The time taken to recognize the text in the speech in
+        seconds.
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+
+        self.text: str = js['text']
+        self.duration: typing.Union[int, float] = js['duration']
+
+class TextToSpeechResult(OpenRobotAPIBaseResult):
+    """
+    The result of /api/speech/text-to-speech endpoint.
+
+    Attributes
+    ----------
+    url: :class:`str`
+        The URL of the speech
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+
+        self.url: str = js['url']
+
+class TextToSpeechSupportLanguage:
+    """
+    The languages supported by Text To Speech.
+
+    Attributes
+    ----------
+    code: :class:`str`
+        The language code.
+    name: :class:`str`
+        The human-readable language name.
+    """
+
+    def __init__(self, js):
+        self.code: str = js.get('code')
+        self.name: str = js.get('name')
+
+class TextToSpeechSupportVoice:
+    """
+    The supported voices for Text To Speech.
+
+    Attributes
+    ----------
+    gender: :class:`str`
+        The voice's gender.
+    id: :class:`str`
+        The Voice ID.
+    language: :class:`TextToSpeechSupportLanguage`
+        The language of the voice.
+    name: :class:`str`
+        The Voice's name.
+    """
+
+    def __init__(self, js):
+        self.gender: str = js.get('Gender')
+        self.id: str = js.get('Id')
+        self.language: TextToSpeechSupportLanguage = TextToSpeechSupportLanguage({'code': js.get('LanguageCode'),'name': js.get('LanguageName')})
+        self.name: str = js.get('Name')
+
+class TextToSpeechSupportResult(OpenRobotAPIBaseResult):
+    """
+    The result of /api/speech/text-to-speech/support endpoint.
+
+    Attributes
+    ----------
+    languages: List[:class:`TextToSpeechSupportLanguage`]
+        The languages supported by Text To Speech.
+    voices: List[:class:`TextToSpeechSupportVoice`]
+        The supported voices for Text To Speech.
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+
+        self.languages: typing.List[TextToSpeechSupportLanguage] = [TextToSpeechSupportLanguage(language) for language in js['languages']]
+        self.voices: typing.List[TextToSpeechSupportVoice] = [TextToSpeechSupportVoice(voice) for voice in js['voices']]
+
 class OCRResult(OpenRobotAPIBaseResult):
     """
     The result of /api/ocr endpoint.
