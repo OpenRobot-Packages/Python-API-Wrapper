@@ -63,6 +63,10 @@ class NSFWLabel:
     confidence: Union[:class:`int`, :class:`float`]
         The confidence of this NSFW Label. A float/int with 
         a number from 0 - 1.
+    parent_name: :class:`str`
+        The parent name of this NSFW Label.
+    name: :class:`str`
+        The name of this NSFW Label.
     """
 
     def __init__(self, js):
