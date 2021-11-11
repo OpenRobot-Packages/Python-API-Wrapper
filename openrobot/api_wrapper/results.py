@@ -39,7 +39,7 @@ class LyricResult(OpenRobotAPIBaseResult):
         The title of the song.
     artist: :class:`str`
         The artist of the song.
-    lyrics :class:`str`
+    lyrics: :class:`str`
         The lyrics of the song. 
     images: :class:`LyricImages`
         Represents The Lyric's Track Images.
