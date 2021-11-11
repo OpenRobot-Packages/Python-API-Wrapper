@@ -76,6 +76,8 @@ class AsyncClient:
         else:
             kwargs['headers'] = headers
 
+        return_on = kwargs.get('return_on', [])
+
         if not url.startswith('/'):
             url = url[1:]
 
@@ -92,7 +94,12 @@ class AsyncClient:
         if self.session:
             async with self.session.request(method, url, **kwargs) as resp:
                 js = await resp.json()
-                if resp.status == 403:
+                if resp.status in return_on:
+                    if raw:
+                        return resp
+                    else:
+                        return js
+                elif resp.status == 403:
                     raise Forbidden(resp, js)
                 elif resp.status == 400:
                     raise BadRequest(resp, js)
@@ -113,7 +120,12 @@ class AsyncClient:
             async with aiohttp.ClientSession(loop=self.loop) as sess:
                 async with sess.request(method, url, **kwargs) as resp:
                     js = await resp.json()
-                    if resp.status == 403:
+                    if resp.status in return_on:
+                        if raw:
+                            return resp
+                        else:
+                            return js
+                    elif resp.status == 403:
                         raise Forbidden(resp, js)
                     elif resp.status == 400:
                         raise BadRequest(resp, js)
@@ -158,7 +170,7 @@ class AsyncClient:
             The Lyrics Result returned by the API.
         """
         
-        js = await self._request('GET', f'/api/lyrics/{quote(query)}')
+        js = await self._request('GET', f'/api/lyrics/{quote(query)}', return_on=[404, 200])
         return LyricResult(js)
 
     async def nsfw_check(self, url: str) -> NSFWCheckResult:
