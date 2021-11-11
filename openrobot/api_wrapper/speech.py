@@ -52,12 +52,12 @@ class Speech:
         if self._is_async:
             async def _text_to_speech() -> TextToSpeechResult:
                 if isinstance(source, str):
-                    js = await self._client.request('POST', '/api/speech/speech-to-text', params={'url': source, 'language_code': language_code})
+                    js = await self._client._request('POST', '/api/speech/speech-to-text', params={'url': source, 'language_code': language_code})
                 elif isinstance(source, io.BytesIO):
                     data = aiohttp.FormData()
                     data.add_field('file', source)
 
-                    js = await self._client.request('POST', '/api/speech/speech-to-text', data=data)
+                    js = await self._client._request('POST', '/api/speech/speech-to-text', data=data)
                 else:
                     raise OpenRobotAPIError('source must be a URL or BytesIO.')
 
@@ -66,12 +66,12 @@ class Speech:
             return _text_to_speech()
         else:
             if isinstance(source, str):
-                js = self._client.request('POST', '/api/speech/speech-to-text', params={'url': source, 'language_code': language_code})
+                js = self._client._request('POST', '/api/speech/speech-to-text', params={'url': source, 'language_code': language_code})
             elif isinstance(source, io.BytesIO):
                 data = aiohttp.FormData()
                 data.add_field('file', source)
 
-                js = self._client.request('POST', '/api/speech/speech-to-text', files={'upload_file': getattr(source, 'getvalue', lambda: source)()}, params={'language_code': language_code})
+                js = self._client._request('POST', '/api/speech/speech-to-text', files={'upload_file': getattr(source, 'getvalue', lambda: source)()}, params={'language_code': language_code})
             else:
                 raise OpenRobotAPIError('source must be a URL or BytesIO.')
 
@@ -102,13 +102,13 @@ class Speech:
 
         if self._is_async:
             async def _speech_to_text_support() -> typing.Dict[str, typing.Any]:
-                js = await self._client.request('GET', '/api/speech/speech-to-text/supports')
+                js = await self._client._request('GET', '/api/speech/speech-to-text/supports')
 
                 return js
 
             return _speech_to_text_support()
         else:
-            js = self._client.request('GET', '/api/speech/speech-to-text/supports')
+            js = self._client._request('GET', '/api/speech/speech-to-text/supports')
 
             return js
         
@@ -148,13 +148,13 @@ class Speech:
 
         if self._is_async:
             async def _text_to_speech() -> TextToSpeechResult:
-                js = await self._client.request('GET', '/api/speech/text-to-speech', params={'text': text, 'language_code': language_code, 'voice_id': voice_id, 'engine': engine})
+                js = await self._client._request('GET', '/api/speech/text-to-speech', params={'text': text, 'language_code': language_code, 'voice_id': voice_id, 'engine': engine})
 
                 return TextToSpeechResult(js)
 
             return _text_to_speech()
         else:
-            js = self._client.request('GET', '/api/speech/text-to-speech', params={'text': text, 'language_code': language_code, 'voice_id': voice_id, 'engine': engine})
+            js = self._client._request('GET', '/api/speech/text-to-speech', params={'text': text, 'language_code': language_code, 'voice_id': voice_id, 'engine': engine})
 
             return TextToSpeechResult(js)
 
@@ -190,12 +190,12 @@ class Speech:
 
         if self._is_async:
             async def _text_to_speech_support() -> TextToSpeechSupportResult:
-                js = await self._client.request('GET', '/api/speech/text-to-speech/supports', params={'language_code': language_code, 'engine': engine})
+                js = await self._client._request('GET', '/api/speech/text-to-speech/supports', params={'language_code': language_code, 'engine': engine})
 
                 return TextToSpeechSupportResult(js)
 
             return _text_to_speech_support()
         else:
-            js = self._client.request('GET', '/api/speech/text-to-speech/supports', params={'language_code': language_code, 'engine': engine})
+            js = self._client._request('GET', '/api/speech/text-to-speech/supports', params={'language_code': language_code, 'engine': engine})
 
             return TextToSpeechSupportResult(js)
