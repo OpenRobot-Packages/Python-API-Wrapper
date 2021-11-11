@@ -52,7 +52,7 @@ class Speech:
         if self._is_async:
             async def _text_to_speech() -> TextToSpeechResult:
                 if isinstance(source, str):
-                    js = await self._client.request('POST', '/api/speech/speech-to-text', params={'url': source})
+                    js = await self._client.request('POST', '/api/speech/speech-to-text', params={'url': source, 'language_code': language_code})
                 elif isinstance(source, io.BytesIO):
                     data = aiohttp.FormData()
                     data.add_field('file', source)
@@ -66,12 +66,12 @@ class Speech:
             return _text_to_speech()
         else:
             if isinstance(source, str):
-                js = self._client.request('POST', '/api/speech/speech-to-text', params={'url': source})
+                js = self._client.request('POST', '/api/speech/speech-to-text', params={'url': source, 'language_code': language_code})
             elif isinstance(source, io.BytesIO):
                 data = aiohttp.FormData()
                 data.add_field('file', source)
 
-                js = self._client.request('POST', '/api/speech/speech-to-text', files={'upload_file': getattr(source, 'getvalue', lambda: source)()})
+                js = self._client.request('POST', '/api/speech/speech-to-text', files={'upload_file': getattr(source, 'getvalue', lambda: source)()}, params={'language_code': language_code})
             else:
                 raise OpenRobotAPIError('source must be a URL or BytesIO.')
 
@@ -112,7 +112,7 @@ class Speech:
 
             return js
         
-    def text_to_speech(self, text: str, language_code: str, voice_id: str, *, engine: str = 'standard') -> typing.Union[typing.Coroutine[None, None, TextToSpeechResult], TextToSpeechResult]:
+    def text_to_speech(self, text: str, language_code: str, voice_id: str, *, engine: typing.Optional[str] = 'standard') -> typing.Union[typing.Coroutine[None, None, TextToSpeechResult], TextToSpeechResult]:
         """|maybecoro|
         
         Text to speech.
@@ -128,7 +128,7 @@ class Speech:
             The language code of the speech.
         voice_id: :class:`str`
             The voice id of the speech.
-        engine: :class:`str`
+        engine: Optional[:class:`str`]
             The engine of the speech.
 
         Raises
@@ -158,13 +158,20 @@ class Speech:
 
             return TextToSpeechResult(js)
 
-    def text_to_speech_support(self) -> typing.Union[typing.Coroutine[None, None, TextToSpeechSupportResult], TextToSpeechSupportResult]:
+    def text_to_speech_support(self, language_code: str, *, engine: typing.Optional[str] = 'standard') -> typing.Union[typing.Coroutine[None, None, TextToSpeechSupportResult], TextToSpeechSupportResult]:
         """|maybecoro|
 
         Returns the supported details for Text To Speech.
 
         This function is a coroutine if the client is an 
         :class:`AsyncClient` object, else it would be a synchronous method.
+
+        Parameters
+        ----------
+        language_code: :class:`str`
+            The language code to get the supported details for.
+        engine: Optional[:class:`str`]
+            The engine of the speech.
 
         Raises
         ------
@@ -183,12 +190,12 @@ class Speech:
 
         if self._is_async:
             async def _text_to_speech_support() -> TextToSpeechSupportResult:
-                js = await self._client.request('GET', '/api/speech/text-to-speech/supports')
+                js = await self._client.request('GET', '/api/speech/text-to-speech/supports', params={'language_code': language_code, 'engine': engine})
 
                 return TextToSpeechSupportResult(js)
 
             return _text_to_speech_support()
         else:
-            js = self._client.request('GET', '/api/speech/text-to-speech/supports')
+            js = self._client.request('GET', '/api/speech/text-to-speech/supports', params={'language_code': language_code, 'engine': engine})
 
             return TextToSpeechSupportResult(js)
