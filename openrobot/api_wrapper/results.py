@@ -357,7 +357,7 @@ class TextToSpeechSupportResult(OpenRobotAPIBaseResult):
 
     Attributes
     ----------
-    languages: List[:class:`TextToSpeechSupportLanguage`]
+    languages: List[:class:`str`]
         The languages supported by Text To Speech.
     voices: List[:class:`TextToSpeechSupportVoice`]
         The supported voices for Text To Speech.
@@ -366,7 +366,7 @@ class TextToSpeechSupportResult(OpenRobotAPIBaseResult):
     def __init__(self, js):
         super().__init__(js)
 
-        self.languages: typing.List[TextToSpeechSupportLanguage] = [TextToSpeechSupportLanguage(language) for language in js['languages']]
+        self.languages: typing.List[str] = js['languages']
         self.voices: typing.List[TextToSpeechSupportVoice] = [TextToSpeechSupportVoice(voice) for voice in js['voices']]
 
 class OCRResult(OpenRobotAPIBaseResult):
