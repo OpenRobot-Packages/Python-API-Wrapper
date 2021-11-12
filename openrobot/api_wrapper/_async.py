@@ -76,7 +76,7 @@ class AsyncClient:
         else:
             kwargs['headers'] = headers
 
-        return_on = kwargs.get('return_on', [])
+        return_on = kwargs.pop('return_on', [])
 
         if not url.startswith('/'):
             url = url[1:]
