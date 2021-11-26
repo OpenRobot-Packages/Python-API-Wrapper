@@ -20,9 +20,9 @@ class LyricImages:
     Attributes
     ----------
     background: Optional[:class:`str`]
-        The background image of the track.
+        The background image of the track. ``None`` if not found.
     track: Optional[:class:`str`]
-        The track image.
+        The track image. ``None`` if not found.
     """
 
     def __init__(self, js):
@@ -35,12 +35,12 @@ class LyricResult(OpenRobotAPIBaseResult):
     
     Attributes
     ----------
-    titie: :class:`str`
-        The title of the song.
-    artist: :class:`str`
-        The artist of the song.
-    lyrics: :class:`str`
-        The lyrics of the song. 
+    titie: Optional[:class:`str`]
+        The title of the song. ``None`` if not found.
+    artist: Optional[:class:`str`]
+        The artist of the song. ``None`` if not found.
+    lyrics: Optional[:class:`str`]
+        The lyrics of the song.  ``None`` if not found.
     images: :class:`LyricImages`
         Represents The Lyric's Track Images.
     """
