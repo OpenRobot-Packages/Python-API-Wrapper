@@ -35,7 +35,7 @@ class LyricResult(OpenRobotAPIBaseResult):
     
     Attributes
     ----------
-    titie: Optional[:class:`str`]
+    title: Optional[:class:`str`]
         The title of the song. ``None`` if not found.
     artist: Optional[:class:`str`]
         The artist of the song. ``None`` if not found.
