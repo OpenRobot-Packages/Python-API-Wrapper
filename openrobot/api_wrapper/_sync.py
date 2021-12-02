@@ -3,6 +3,7 @@ import re
 import warnings
 import io
 import typing
+import time
 from .error import *
 from .results import *
 from .translate import Translate
@@ -27,6 +28,15 @@ class SyncClient:
         to ``I-Am-Testing``.
     ignore_warning: Optional[:class:`bool`]
         Ignores the ``I-Am-Testing`` Warning. Defaults to ``False``.
+    handle_ratelimit: Optional[:class:`bool`]
+        Handles the ratelimit. If this is ``False``, then it raises
+        :exc:`TooManyRequests`. Else, it will sleep for `Retry-After`. 
+        Defaults to ``True``.
+    tries: Optional[:class:`int`]
+        The number of tries to execute a request to the API This is to. 
+        handle 429s. This does not affect anything if ``handle_ratelimit``
+        is ``False``. If this is ``None``, it will go infinitely and you
+        might get Temp-Banned by Cloudflare. Defaults to ``5``.
 
     Attributes
     ----------
@@ -34,13 +44,17 @@ class SyncClient:
         The token used to authorize to the API.
     """
 
-    def __init__(self, token: str = 'I-Am-Testing', *, ignore_warning = False):
+    def __init__(self, token: str = 'I-Am-Testing', *, ignore_warning = False, handle_ratelimit: bool = True, tries: int = 5):
         if not token:
             raise NoTokenProvided()
         elif token == 'I-Am-Testing' and not ignore_warning:
             warnings.warn('Using I-Am-Testing token will only let you 5 requests/day (UTC based, will reset on 00:00 UTC) for all `/api` methods and will raise an `openrobot.api_wrapper.error.Forbidden` after you have reached your limit.')
 
-        self.token = str(token)
+        self.token: str = str(token)
+
+        self.handle_ratelimit: bool = handle_ratelimit
+
+        self.tries: int = tries
 
     # Important and internal methods, but should be used un-regularly by the User itself.
 
@@ -61,6 +75,8 @@ class SyncClient:
         else:
             kwargs['headers'] = headers
 
+        return_on = kwargs.pop('return_on', [])
+
         if not url.startswith('/'):
             url = url[1:]
 
@@ -74,27 +90,49 @@ class SyncClient:
         else:
             raise TypeError('URL is not a valid HTTP/HTTPs URL.')
 
-        with requests.Session() as s:
-            r = s.request(method, url, **kwargs)
+        tries = int(self.tries) if self.tries is not None else None
 
-            js = r.json()
-            if r.status_code == 403:
-                raise Forbidden(r, js)
-            elif r.status_code == 400:
-                raise BadRequest(r, js)
-            elif r.status_code == 500:
-                raise InternalServerError(r, js)
-            elif 200 <= r.status_code < 300:
-                if raw:
-                    return r
+        while tries is None or tries > 0:
+            with requests.Session() as s:
+                r = s.request(method, url, **kwargs)
+
+                js = r.json()
+
+                if r.status_code in return_on:
+                    if raw:
+                        return r
+                    else:
+                        return js
+                if r.status_code == 403:
+                    raise Forbidden(r, js)
+                elif r.status_code == 400:
+                    raise BadRequest(r, js)
+                elif r.status_code == 500:
+                    raise InternalServerError(r, js)
+                elif r.status_code == 429:
+                    if not self.handle_ratelimit:
+                        raise TooManyRequests(r, js)
+
+                    try:
+                        time.sleep(r.headers['Retry-After'])
+                    except KeyError as e:
+                        raise KeyError('Retry-After header is not present.') from e
+
+                    if tries:
+                        tries -= 1
+                elif 200 <= r.status_code < 300:
+                    if raw:
+                        return r
+                    else:
+                        return js
                 else:
-                    return js
-            else:
-                cls = OpenRobotAPIError(js)
-                cls.raw = js
-                cls.response = r
+                    cls = OpenRobotAPIError(js)
+                    cls.raw = js
+                    cls.response = r
 
-                raise cls
+                    raise cls
+
+        raise TooManyRequests(r, js)
 
     # Methods to query to API:
 

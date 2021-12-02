@@ -32,6 +32,15 @@ class AsyncClient:
         The loop to be used. Defaults to :meth:`asyncio.get_event_loop`.
     ignore_warning: Optional[:class:`bool`]
         Ignores the ``I-Am-Testing`` Warning. Defaults to ``False``.
+    handle_ratelimit: Optional[:class:`bool`]
+        Handles the ratelimit. If this is ``False``, then it raises
+        :exc:`TooManyRequests`. Else, it will sleep for `Retry-After`. 
+        Defaults to ``True``.
+    tries: Optional[:class:`int`]
+        The number of tries to execute a request to the API This is to. 
+        handle 429s. This does not affect anything if ``handle_ratelimit``
+        is ``False``. If this is ``None``, it will go infinitely and you
+        might get Temp-Banned by Cloudflare. Defaults to ``5``.
 
     Attributes
     ----------
@@ -43,20 +52,24 @@ class AsyncClient:
         The session used. ``None`` if not specified.
     """
 
-    def __init__(self, token: str = 'I-Am-Testing', *, session: aiohttp.ClientSession = None, loop: asyncio.AbstractEventLoop = None, ignore_warning: bool = False):
+    def __init__(self, token: str = 'I-Am-Testing', *, session: aiohttp.ClientSession = None, loop: asyncio.AbstractEventLoop = None, ignore_warning: bool = False, handle_ratelimit: bool = True, tries: int = 5):
         if not token:
             raise NoTokenProvided()
         elif token == 'I-Am-Testing' and not ignore_warning:
             warnings.warn('Using I-Am-Testing token will only let you 5 requests/day (UTC based, will reset on 00:00 UTC) for all `/api` methods and will raise an `openrobot.api_wrapper.error.Forbidden` after you have reached your limit.')
 
-        self.token = str(token)
+        self.token: str = str(token)
 
-        self.loop = loop or asyncio.get_event_loop()
+        self.loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
-        self.session = session if isinstance(session, aiohttp.ClientSession) else None
+        self.session: typing.Optional[aiohttp.ClientSession] = session if isinstance(session, aiohttp.ClientSession) else None
 
         if self.session:
             self.session._loop = self.loop
+
+        self.handle_ratelimit: bool = handle_ratelimit
+
+        self.tries: int = tries
 
     # Important and internal methods, but should be used un-regularly by the User itself.
 
@@ -90,35 +103,12 @@ class AsyncClient:
             url = ('https://api.openrobot.xyz/api' + url)
         else:
             raise TypeError('URL is not a valid HTTP/HTTPs URL.')
-        
-        if self.session:
-            async with self.session.request(method, url, **kwargs) as resp:
-                js = await resp.json()
-                if resp.status in return_on:
-                    if raw:
-                        return resp
-                    else:
-                        return js
-                elif resp.status == 403:
-                    raise Forbidden(resp, js)
-                elif resp.status == 400:
-                    raise BadRequest(resp, js)
-                elif resp.status == 500:
-                    raise InternalServerError(resp, js)
-                elif 200 <= resp.status < 300:
-                    if raw:
-                        return resp
-                    else:
-                        return js
-                else:
-                    cls = OpenRobotAPIError(js)
-                    cls.raw = js
-                    cls.response = resp
 
-                    raise cls
-        else:
-            async with aiohttp.ClientSession(loop=self.loop) as sess:
-                async with sess.request(method, url, **kwargs) as resp:
+        tries = int(self.tries) if self.tries is not None else None
+        
+        while tries is None or tries > 0:
+            if self.session:
+                async with self.session.request(method, url, **kwargs) as resp:
                     js = await resp.json()
                     if resp.status in return_on:
                         if raw:
@@ -131,6 +121,17 @@ class AsyncClient:
                         raise BadRequest(resp, js)
                     elif resp.status == 500:
                         raise InternalServerError(resp, js)
+                    elif resp.status == 429:
+                        if not self.handle_ratelimit:
+                            raise TooManyRequests(resp, js)
+
+                        try:
+                            await asyncio.sleep(resp.headers['Retry-After'])
+                        except KeyError as e:
+                            raise KeyError('Retry-After header is not present.') from e
+
+                        if tries:
+                            tries -= 1
                     elif 200 <= resp.status < 300:
                         if raw:
                             return resp
@@ -142,6 +143,45 @@ class AsyncClient:
                         cls.response = resp
 
                         raise cls
+            else:
+                async with aiohttp.ClientSession(loop=self.loop) as sess:
+                    async with sess.request(method, url, **kwargs) as resp:
+                        js = await resp.json()
+                        if resp.status in return_on:
+                            if raw:
+                                return resp
+                            else:
+                                return js
+                        elif resp.status == 403:
+                            raise Forbidden(resp, js)
+                        elif resp.status == 400:
+                            raise BadRequest(resp, js)
+                        elif resp.status == 500:
+                            raise InternalServerError(resp, js)
+                        elif resp.status == 429:
+                            if not self.handle_ratelimit:
+                                raise TooManyRequests(resp, js)
+
+                            try:
+                                await asyncio.sleep(resp.headers['Retry-After'])
+                            except KeyError as e:
+                                raise KeyError('Retry-After header is not present.') from e
+
+                            if tries:
+                                tries -= 1
+                        elif 200 <= resp.status < 300:
+                            if raw:
+                                return resp
+                            else:
+                                return js
+                        else:
+                            cls = OpenRobotAPIError(js)
+                            cls.raw = js
+                            cls.response = resp
+
+                            raise cls
+        
+        raise TooManyRequests(resp, js)
 
     # Methods to query to API:
 
