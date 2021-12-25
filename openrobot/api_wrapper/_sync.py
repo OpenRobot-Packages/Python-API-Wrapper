@@ -114,9 +114,9 @@ class SyncClient:
                         raise TooManyRequests(r, js)
 
                     try:
-                        time.sleep(r.headers['Retry-After'])
+                        time.sleep(int(resp.headers['Retry-After']))
                     except KeyError as e:
-                        raise KeyError('Retry-After header is not present.') from e
+                        raise KeyError('Retry-After header is not present.') from e # this probably wont trigger, but either way we still need to handle it, right?
 
                     if tries:
                         tries -= 1
