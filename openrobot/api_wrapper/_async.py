@@ -8,6 +8,7 @@ from .error import *
 from .results import *
 from .translate import Translate
 from .speech import Speech
+from .utils import get_token_from_file
 
 try:
     from urllib.parse import quote_plus as quote
@@ -53,6 +54,8 @@ class AsyncClient:
     """
 
     def __init__(self, token: str = 'I-Am-Testing', *, session: aiohttp.ClientSession = None, loop: asyncio.AbstractEventLoop = None, ignore_warning: bool = False, handle_ratelimit: bool = True, tries: int = 5):
+        token = token or get_token_from_file()
+
         if not token:
             raise NoTokenProvided()
         elif token == 'I-Am-Testing' and not ignore_warning:
