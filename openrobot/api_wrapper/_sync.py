@@ -136,6 +136,176 @@ class SyncClient:
 
     # Methods to query to API:
 
+    def text_generation(self, text: str, *, max_length: typing.Optional[int] = None, num_return: typing.Optional[int] = 1) -> TextGenerationResult:
+        """
+        Text Generation/Completion. This uses the /api/text-generation endpoint.
+
+        Parameters
+        ----------
+        text: :class:`str`
+            The text to be completed/generated.
+        max_length: Optional[:class:`int`]
+            The maximum length of the generated text. Defaults to ``None``.
+        num_return: Optional[:class:`int`]
+            The number of generated texts to return. Defaults to 1.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`TextGenerationResult`
+            The text generation result returned by the API.
+        """
+
+        js = self._request('POST', '/api/text-generation', data={'text': text, 'max_length': max_length, 'num_return': num_return})
+        return TextGenerationResult(js)
+
+    def text_generation_get(self, task_id: str) -> TextGenerationResult:
+        """
+        Gets the status of a text generation task. This uses the /api/text-generation/{task_id} endpoint.
+
+        Parameters
+        ----------
+        task_id: :class:`str`
+            The task ID of the text generation task.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`TextGenerationResult`
+            The text generation result returned by the API.
+        """
+
+        js = self._request('GET', f'/api/text-generation/{quote(task_id)}')
+        return TextGenerationResult(js)
+
+    def sentiment(self, text: str) -> SentimentResult:
+        """
+        Performs a Sentiment check on a text.
+
+        Parameters
+        ----------
+        text: :class:`str`
+            The text to be checked.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`SentimentResult`
+            The sentiment result returned by the API.
+        """
+
+        js = self._request('POST', '/api/sentiment', data={'text': text})
+        return SentimentResult(js)
+
+    def sentiment_get(self, task_id: str) -> SentimentResult:
+        """
+        Gets the status of a sentiment task. This uses the /api/sentiment/{task_id} endpoint.
+
+        Parameters
+        ----------
+        task_id: :class:`str`
+            The task ID of the sentiment task.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`SentimentResult`
+            The sentiment result returned by the API.
+        """
+
+        js = self._request('GET', f'/api/sentiment/{quote(task_id)}')
+        return SentimentResult(js)
+
+    def summarization(self, text: str, *, max_length: typing.Optional[int] = None, min_length: typing.Optional[int] = 1) -> SummarizationResult:
+        """
+        Summarizes a text. This uses the /api/summarization endpoint.
+
+        Parameters
+        ----------
+        text: :class:`str`
+            The text to be summarized.
+        max_length: Optional[:class:`int`]
+            The maximum length of the summary. Defaults to ``None``.
+        min_length: Optional[:class:`int`]
+            The minimum length of the summary. Defaults to ``None``.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`SummarizationResult`
+            The summarization result returned by the API.
+        """
+
+        js = self._request('POST', '/api/summarization', data={'text': text, 'max_length': max_length, 'min_length': min_length})
+        return SummarizationResult(js)
+
+    def summarization_get(self, task_id: str) -> SummarizationResult:
+        """
+        Gets the status of a summarization task. This uses the /api/summarization/{task_id} endpoint.
+
+        Parameters
+        ----------
+        task_id: :class:`str`
+            The task ID of the summarization task.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`SummarizationResult`
+            The summarization result returned by the API.
+        """
+
+        js = self._request('GET', f'/api/summarization/{quote(task_id)}')
+        return SummarizationResult(js)
+
     def lyrics(self, query: str) -> LyricResult:
         """
         Gets the lyrics from the API.

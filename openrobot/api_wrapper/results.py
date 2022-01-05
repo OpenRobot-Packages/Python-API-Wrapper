@@ -13,6 +13,121 @@ class OpenRobotAPIBaseResult:
     def __init__(self, js):
         self.raw = js
 
+class TextGenerationResult(OpenRobotAPIBaseResult):
+    """
+    The result of the /api/text-generation endpoint.
+
+    Attributes
+    ----------
+    task_id: :class:`str`
+        The Task ID of the request. This is used to re-get
+        the result later.
+    text: :class:`str`
+        The original text passed.
+    max_length: :class:`int`
+        The maximum length of the generated text.
+    num_return: :class:`str`
+        The number of generated texts to return.
+    status: Literal["STARTED", "PENDING", "COMPLETED", "FAILED"]
+        The status of the request. 
+    result: Optional[:class:`str`]
+        The generated text. This may be ``None`` if status is not
+        ``COMPLETED``.
+    timestamp: :class:`float`
+        The timestamp at which the request was made.
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+        
+        self.task_id: str = js["task_id"]
+        self.text: str = js["text"]
+        self.max_length: int = js["max_length"]
+        self.num_return: int = js["num_return"]
+        self.status: str = js["status"]
+        self.result: typing.Optional[str] = js["result"][0]["generated_text"] if js["result"] else None
+        self.timestamp: float = js["timestamp"]
+
+class SentimentResultReturned:
+    """
+    The sentiment result.
+
+    Attributes
+    ----------
+    label: Literal["POSITIVE", "NEGATIVE"]
+        The label of the sentiment.
+    score: :class:`float`
+        The score of the sentiment.
+    """
+
+    def __init__(self, js):
+        self.label: str = js["label"]
+        self.score: float = js["score"]
+
+class SentimentResult(OpenRobotAPIBaseResult):
+    """
+    The resullt of the /api/sentiment endpoint.
+
+    Attributes
+    ----------
+    task_id: :class:`str`
+        The Task ID of the request. This is used to re-get
+        the result later.
+    text: :class:`str`
+        The original text passed.
+    status: Literal["STARTED", "PENDING", "COMPLETED", "FAILED"]
+        The status of the request. 
+    result: List[:class:`SentimentResultReturned`]
+        The sentiment result. This may be an empty list if status is not
+        ``COMPLETED``.
+    timestamp: :class:`float`
+        The timestamp at which the request was made.
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+
+        self.task_id: str = js["task_id"]
+        self.text: str = js["text"]
+        self.status: str = js["status"]
+        self.result: typing.List[SentimentResultReturned] = [SentimentResultReturned(x) for x in js["result"]]
+        self.timestamp: float = js["timestamp"]
+
+class SummarizationResult(OpenRobotAPIBaseResult):
+    """
+    The result of the /api/summarization endpoint.
+
+    Attributes
+    ----------
+    task_id: :class:`str`
+        The Task ID of the request. This is used to re-get
+        the result later.
+    text: :class:`str`
+        The original text passed.
+    max_length: :class:`int`
+        The maximum length of the generated text.
+    min_length: :class:`str`
+        The number of generated texts to return.
+    status: Literal["STARTED", "PENDING", "COMPLETED", "FAILED"]
+        The status of the request. 
+    result: Optional[:class:`str`]
+        The generated text. This may be ``None`` if status is not
+        ``COMPLETED``.
+    timestamp: :class:`float`
+        The timestamp at which the request was made.
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+        
+        self.task_id: str = js["task_id"]
+        self.text: str = js["text"]
+        self.max_length: int = js["max_length"]
+        self.num_return: int = js["min_length"]
+        self.status: str = js["status"]
+        self.result: typing.Optional[str] = js["result"][0]["summary_text"] if js["result"] else None
+        self.timestamp: float = js["timestamp"]
+
 class LyricImages:
     """
     The Lyric's Track Images.
