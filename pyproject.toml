@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "OpenRobot-API-Wrapper"
-version = "0.3.0.6"
+version = "0.4.0"
 description = "A API Wrapper for the official OpenRobot API (https://api.openrobot.xyz)."
 authors = ["OpenRobot Packages <openrobot@openrobot.xyz>", "proguy914629 <proguy914629@openrobot.xyz>"]
 license = "MIT"
