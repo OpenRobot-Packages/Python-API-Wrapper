@@ -7,4 +7,4 @@ from .speech import *
 
 from . import _async, _sync, translate, results, error, speech
 
-__version__ = '0.3.0.3'
+__version__ = '0.3.0.4'
