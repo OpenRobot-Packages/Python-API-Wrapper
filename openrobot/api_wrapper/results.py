@@ -147,7 +147,7 @@ class CelebrityFaceLandmarksProperty:
     """
 
     def __init__(self, js):
-        self.type: str = js['type']
+        self.type: str = js['Type']
         self.coordinate: CelebrityFaceLandmarksCoordinateLandmarksProperty = CelebrityFaceLandmarksCoordinateLandmarksProperty(js['X'], js['Y'])
 
 class CelebrityFacePose:
