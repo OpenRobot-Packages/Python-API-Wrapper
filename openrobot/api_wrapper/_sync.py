@@ -215,7 +215,7 @@ class SyncClient:
         """
 
         js = self._request('GET', '/api/celebrity', params={'url': url})
-        return [CelebrityResult(data) for data in js]
+        return [CelebrityResult(data) for data in js['detectedFaces']]
 
     def ocr(self, source: typing.Union[str, io.BytesIO]) -> OCRResult:
         """

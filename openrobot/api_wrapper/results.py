@@ -183,7 +183,7 @@ class CelebrityFaceQuality:
 
     def __init__(self, js):
         self.brightness: typing.Union[int, float] = js['Brightess']
-        self.sharpnes: typing.Union[int, float] = js['Sharpness']
+        self.sharpness: typing.Union[int, float] = js['Sharpness']
 
 class CelebrityFaceEmotion:
     """
@@ -237,7 +237,7 @@ class CelebrityFaceProperty:
         The pose of the celebrity.
     quality: :class:`CelebrityFaceQuality`
         The quality of the face
-    emotion: List[:class:`CelebrityFaceEmotion`]
+    emotions: List[:class:`CelebrityFaceEmotion`]
         The emotions of the face.
     smile: :class:`CelebrityFaceSmile`
         Represents the smile that the celebrity is having.
@@ -249,7 +249,7 @@ class CelebrityFaceProperty:
         self.landmarks: typing.List[CelebrityFaceLandmarksProperty] = [CelebrityFaceLandmarksProperty(landmark) for landmark in js['Landmarks']]
         self.pose: CelebrityFacePose = CelebrityFacePose(js['Pose'])
         self.quality: CelebrityFaceQuality = CelebrityFaceQuality(js['Quality'])
-        self.emotion: typing.List[CelebrityFaceEmotion] = [CelebrityFaceEmotion(emotion) for emotion in sorted(js['Emotions'], key=lambda d: d['Confidence'])]
+        self.emotions: typing.List[CelebrityFaceEmotion] = [CelebrityFaceEmotion(emotion) for emotion in sorted(js['Emotions'], key=lambda d: d['Confidence'])]
         self.smile: CelebrityFaceSmile = CelebrityFaceSmile(js['Smile'])
 
 class CelebrityResult(OpenRobotAPIBaseResult):
