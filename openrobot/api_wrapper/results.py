@@ -182,7 +182,7 @@ class CelebrityFaceQuality:
     """
 
     def __init__(self, js):
-        self.brightness: typing.Union[int, float] = js['Brightess']
+        self.brightness: typing.Union[int, float] = js['Brightness']
         self.sharpness: typing.Union[int, float] = js['Sharpness']
 
 class CelebrityFaceEmotion:
