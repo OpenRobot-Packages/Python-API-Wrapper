@@ -45,7 +45,7 @@ class TextGenerationResult(OpenRobotAPIBaseResult):
         self.max_length: int = js["max_length"]
         self.num_return: int = js["num_return"]
         self.status: str = js["status"]
-        self.result: typing.Optional[str] = js["result"][0]["generated_text"] if js["result"] else None
+        self.result: typing.Optional[typing.List[str]] = [x["generated_text"] for x in js["result"]] if js["result"] else None
         self.timestamp: float = js["timestamp"]
 
 class SentimentResultReturned:
