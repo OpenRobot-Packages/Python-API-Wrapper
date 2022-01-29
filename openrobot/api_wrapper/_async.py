@@ -8,7 +8,7 @@ from .error import *
 from .results import *
 from .translate import Translate
 from .speech import Speech
-from .utils import get_token_from_file
+from .utils import *
 
 try:
     from urllib.parse import quote_plus as quote
@@ -112,7 +112,11 @@ class AsyncClient:
         while tries is None or tries > 0:
             if self.session:
                 async with self.session.request(method, url, **kwargs) as resp:
-                    js = await resp.json()
+                    js = await json_or_text(resp)
+
+                    if not isinstance(js, dict):
+                        raise UnexpectedContentType(resp, js)
+
                     if resp.status in return_on:
                         if raw:
                             return resp

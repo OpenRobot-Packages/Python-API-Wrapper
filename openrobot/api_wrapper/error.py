@@ -46,6 +46,15 @@ class TooManyRequests(OpenRobotAPIError):
 
         super().__init__(self.message)
 
+class UnexpectedContentType(OpenRobotAPIError):
+    """An unexpected content type was given by the API."""
+    def __init__(self, resp, response):
+        self.content_type = resp.content_type
+        self.response: typing.Union[aiohttp.ClientResponse, requests.Response] = resp
+        self.api_response = response
+
+        super().__init__(f'Unexpected Content Type: {self.content_type}: {self.api_response}')
+
 class NoTokenProvided(OpenRobotAPIError):
     """No token was provided."""
     def __init__(self):

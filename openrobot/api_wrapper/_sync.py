@@ -8,7 +8,7 @@ from .error import *
 from .results import *
 from .translate import Translate
 from .speech import Speech
-from .utils import get_token_from_file
+from .utils import *
 
 try:
     from urllib.parse import quote_plus as quote
@@ -99,7 +99,10 @@ class SyncClient:
             with requests.Session() as s:
                 r = s.request(method, url, **kwargs)
 
-                js = r.json()
+                js = json_or_text(r, sync=True)
+
+                if not isinstance(js, dict):
+                    raise UnexpectedContentType(r, js)
 
                 if r.status_code in return_on:
                     if raw:
