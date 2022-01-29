@@ -7,6 +7,6 @@ ocr = await client.ocr(url=...)
 
 # From bytes:
 from io import BytesIO
-ocr = await client.ocr(fp=BytesIO(...))
+ocr = await client.ocr(source=BytesIO(...))
 
 ocr.text # ...
