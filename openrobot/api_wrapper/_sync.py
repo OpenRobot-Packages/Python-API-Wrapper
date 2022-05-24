@@ -36,7 +36,7 @@ class SyncClient:
     tries: Optional[:class:`int`]
         The number of tries to execute a request to the API This is to. 
         handle 429s. This does not affect anything if ``handle_ratelimit``
-        is ``False``. If this is ``None``, it will go infinitely and you
+        is ``False``. If this is ``None``, it will go infinitely, and you
         might get Temp-Banned by Cloudflare. Defaults to ``5``.
 
     Attributes
@@ -122,7 +122,8 @@ class SyncClient:
                     try:
                         time.sleep(int(r.headers['Retry-After']))
                     except KeyError as e:
-                        raise KeyError('Retry-After header is not present.') from e # this probably wont trigger, but either way we still need to handle it, right?
+                        raise KeyError('Retry-After header is not present.') from e # this probably won't trigger, but
+                        # either way we still need to handle it, right?
 
                     if tries:
                         tries -= 1
@@ -339,14 +340,14 @@ class SyncClient:
         js = self._request('GET', f'/api/lyrics/{quote(query)}')
         return LyricResult(js)
 
-    def nsfw_check(self, url: str) -> NSFWCheckResult:
+    def nsfw_check(self, source: typing.Union[bytes, io.BytesIO]) -> NSFWCheckResult:
         """
         Queries an NSFW Check to the API.
 
         Parameters
         ----------
-        url: :class:`str`
-            The Image URL to check for.
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
+            The image to be checked.
 
         Raises
         ------
@@ -363,17 +364,24 @@ class SyncClient:
             The NSFW Check Result returned by the API.
         """
 
-        js = self._request('GET', '/api/nsfw-check', params={'url': url})
+        if isinstance(source, io.BytesIO):
+            source = source.getvalue()
+
+        if not isinstance(source, bytes):
+            raise TypeError('source must be bytes or io.BytesIO')
+
+        js = self._request('POST', '/api/nsfw-check', files={'upload_file': source})
+
         return NSFWCheckResult(js)
 
-    def celebrity(self, url: str) -> typing.List[CelebrityResult]:
+    def celebrity(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[CelebrityResult]:
         """
         Detects the celebrities in the image.
 
         Parameters
         ----------
-        url: :class:`str`
-            The Image URL.      
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
+            The source of the image.
 
         Raises
         ------
@@ -390,16 +398,23 @@ class SyncClient:
             The celebrities detected.
         """
 
-        js = self._request('GET', '/api/celebrity', params={'url': url})
-        return [CelebrityResult(data) for data in js['detectedFaces']]
+        if isinstance(source, io.BytesIO):
+            source = source.getvalue()
 
-    def ocr(self, source: typing.Union[str, io.BytesIO]) -> OCRResult:
+        if not isinstance(source, bytes):
+            raise TypeError('source must be bytes or io.BytesIO')
+
+        js = self._request('POST', '/api/celebrity', files={'upload_file': source})
+
+        return [CelebrityResult(data) for data in js['celebrities']]
+
+    def ocr(self, source: typing.Union[bytes, io.BytesIO]) -> OCRResult:
         """
-        Reads text from a image.
+        Reads text from an image.
 
         Parameters
         ----------
-        source: Union[:class:`str`, :class:`io.BytesIO`]
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
             The URL/Bytes of the image.
 
         Raises
@@ -417,12 +432,13 @@ class SyncClient:
             The OCR/Text found.
         """
 
-        if isinstance(source, str):
-            js = self._request('POST', '/api/ocr', params={'url': source})
-        elif isinstance(source, io.BytesIO):
-            js = self._request('POST', '/api/ocr', files={'upload_file': getattr(source, 'getvalue', lambda: source)()})
-        else:
-            raise OpenRobotAPIError('source must be a URL or BytesIO.')
+        if isinstance(source, io.BytesIO):
+            source = source.getvalue()
+
+        if not isinstance(source, bytes):
+            raise TypeError('source must be bytes or io.BytesIO')
+
+        js = self._request('POST', '/api/ocr', files={'upload_file': source})
 
         return OCRResult(js)
 
@@ -431,7 +447,7 @@ class SyncClient:
         """:class:`Translate`: The Translate client."""
         return Translate(self, False)
 
-    @property
-    def speech(self) -> Speech:
-        """:class:`Speech`: The Speech client."""
-        return Speech(self, False)
+    # @property
+    # def speech(self) -> Speech:
+    #     """:class:`Speech`: The Speech client."""
+    #     return Speech(self, False)

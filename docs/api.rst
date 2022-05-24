@@ -47,7 +47,15 @@ Results
     :members:
     :inherited-members:
 
-.. autoclass:: openrobot.api_wrapper.NSFWLabel()
+.. autoclass:: openrobot.api_wrapper.NSFWCheckAdult()
+    :members:
+    :inherited-members:
+
+.. autoclass:: openrobot.api_wrapper.NSFWCheckRacy()
+    :members:
+    :inherited-members:
+
+.. autoclass:: openrobot.api_wrapper.NSFWCheckGore()
     :members:
     :inherited-members:
 
@@ -55,35 +63,7 @@ Results
     :members:
     :inherited-members:
 
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceBoundingBoxProperty()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceLandmarksCoordinateLandmarksProperty()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceLandmarksProperty()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFacePose()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceQuality()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceEmotion()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceSmile()
-    :members:
-    :inherited-members:
-
-.. autoclass:: openrobot.api_wrapper.CelebrityFaceProperty()
+.. autoclass:: openrobot.api_wrapper.CelebrityFaceRectangle()
     :members:
     :inherited-members:
 

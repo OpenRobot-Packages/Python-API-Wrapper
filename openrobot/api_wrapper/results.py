@@ -1,5 +1,6 @@
 import typing
 
+
 class OpenRobotAPIBaseResult:
     """
     The base result of the API.
@@ -12,6 +13,7 @@ class OpenRobotAPIBaseResult:
 
     def __init__(self, js):
         self.raw = js
+
 
 class TextGenerationResult(OpenRobotAPIBaseResult):
     """
@@ -39,14 +41,16 @@ class TextGenerationResult(OpenRobotAPIBaseResult):
 
     def __init__(self, js):
         super().__init__(js)
-        
+
         self.task_id: str = js["task_id"]
         self.text: str = js["text"]
         self.max_length: int = js["max_length"]
         self.num_return: int = js["num_return"]
         self.status: str = js["status"]
-        self.result: typing.Optional[typing.List[str]] = [x["generated_text"] for x in js["result"]] if js["result"] else None
+        self.result: typing.Optional[typing.List[str]] = [x["generated_text"] for x in js["result"]] if js[
+            "result"] else None
         self.timestamp: float = js["timestamp"]
+
 
 class SentimentResultReturned:
     """
@@ -63,6 +67,7 @@ class SentimentResultReturned:
     def __init__(self, js):
         self.label: str = js["label"]
         self.score: float = js["score"]
+
 
 class SentimentResult(OpenRobotAPIBaseResult):
     """
@@ -93,6 +98,7 @@ class SentimentResult(OpenRobotAPIBaseResult):
         self.result: typing.List[SentimentResultReturned] = [SentimentResultReturned(x) for x in js["result"]]
         self.timestamp: float = js["timestamp"]
 
+
 class SummarizationResult(OpenRobotAPIBaseResult):
     """
     The result of the /api/summarization endpoint.
@@ -119,7 +125,7 @@ class SummarizationResult(OpenRobotAPIBaseResult):
 
     def __init__(self, js):
         super().__init__(js)
-        
+
         self.task_id: str = js["task_id"]
         self.text: str = js["text"]
         self.max_length: int = js["max_length"]
@@ -128,10 +134,11 @@ class SummarizationResult(OpenRobotAPIBaseResult):
         self.result: typing.Optional[str] = js["result"][0]["summary_text"] if js["result"] else None
         self.timestamp: float = js["timestamp"]
 
+
 class LyricImages:
     """
     The Lyric's Track Images.
-    
+
     Attributes
     ----------
     background: Optional[:class:`str`]
@@ -143,6 +150,7 @@ class LyricImages:
     def __init__(self, js):
         self.background: typing.Optional[str] = js.get('background')
         self.track: typing.Optional[str] = js.get('track')
+
 
 class LyricResult(OpenRobotAPIBaseResult):
     """
@@ -169,25 +177,57 @@ class LyricResult(OpenRobotAPIBaseResult):
 
         self.images = LyricImages(js.get('images', {}))
 
-class NSFWLabel:
+
+class NSFWCheckAdult:
     """
-    NSFW Label.
-    
+    Checks if the image is adult content.
+
     Attributes
     ----------
-    confidence: Union[:class:`int`, :class:`float`]
-        The confidence of this NSFW Label. A float/int with 
-        a number from 0 - 1.
-    parent_name: :class:`str`
-        The parent name of this NSFW Label.
-    name: :class:`str`
-        The name of this NSFW Label.
+    is_adult: :class:`bool`
+        If the image is part of adult content or not
+    adult_score: :class:`float`
+        The adult score for the image from 0 to 1.
     """
 
     def __init__(self, js):
-        self.confidence: typing.Union[int, float] = js['Confidence']
-        self.parent_name: str = js['ParentName']
-        self.name: str = js['Name']
+        self.is_adult: bool = js['is_adult']
+        self.adult_score: float = js['adult_score']
+
+
+class NSFWCheckRacy:
+    """
+    Checks if the image is racy content.
+
+    Attributes
+    ----------
+    is_racy: :class:`bool`
+        If the image is part of racy content or not
+    raxy_score: :class:`float`
+        The racy score for the image from 0 to 1.
+    """
+
+    def __init__(self, js):
+        self.is_racy: bool = js['is_racy']
+        self.racy_score: float = js['racy_score']
+
+
+class NSFWCheckGore:
+    """
+    Checks if the image is gore content.
+
+    Attributes
+    ----------
+    is_gore: :class:`bool`
+        If the image is part of gore content or not
+    gore_score: :class:`float`
+        The gore score for the image from 0 to 1.
+    """
+
+    def __init__(self, js):
+        self.is_gore: bool = js['is_gore']
+        self.gore_score: float = js['gore_score']
+
 
 class NSFWCheckResult(OpenRobotAPIBaseResult):
     """
@@ -195,177 +235,45 @@ class NSFWCheckResult(OpenRobotAPIBaseResult):
     
     Attributes
     ----------
-    labels: :class:`NSFWLabel`
-        The labels for the image.
-    score: Union[:class:`int`, :class:`float`]
-        The NSFW rate. A float/int with a number 
-        from 0 - 100.
+    adult: :class:`NSFWCheckAdult`
+        Checks if the image is adult content.
+    racy: :class:`NSFWCheckRacy`
+        Checks if the image is racy content.
+    gore: :class:`NSFWCheckGore`
+        Checks if the image is gore content.
     """
 
     def __init__(self, js):
         super().__init__(js)
 
-        self.labels: typing.List[NSFWLabel] = [NSFWLabel(x) for x in js['labels']]
-        self.score: typing.Union[int, float] = js['nsfw_score']
+        self.image_url = js['image_url']
+        self.adult = NSFWCheckAdult(js['adult'])
+        self.racy = NSFWCheckRacy(js['racy'])
+        self.gore = NSFWCheckGore(js['gore'])
 
-class CelebrityFaceBoundingBoxProperty:
+
+class CelebrityFaceRectangle:
     """
-    The Celebrity's Face Bounding Box.
+    The Celebrity's Face Rectangle (Bounding Box).
 
     Attributes
     ----------
-    width: Union[:class:`int`, :class:`float`]
-        The width of the bounding box.
-    height: Union[:class:`int`, :class:`float`]
-        The height of the bounding box.
     left: Union[:class:`int`, :class:`float`]
-        The left of the bounding box.
+        X-coordinate of the top left point of the face, in pixels.
     top: Union[:class:`int`, :class:`float`]
-        The top of the bounding box.
+        Y-coordinate of the top left point of the face, in pixels.
+    width: Union[:class:`int`, :class:`float`]
+        Width measured from the top-left point of the face, in pixels.
+    height: Union[:class:`int`, :class:`float`]
+        Height measured from the top-left point of the face, in pixels.
     """
 
     def __init__(self, js):
-        self.width: typing.Union[int, float] = js['Width']
-        self.height: typing.Union[int, float] = js['Height']
-        self.left: typing.Union[int, float] = js['Left']
-        self.top: typing.Union[int, float] = js['Top']
+        self.left: typing.Union[int, float] = js['left']
+        self.top: typing.Union[int, float] = js['top']
+        self.width: typing.Union[int, float] = js['width']
+        self.height: typing.Union[int, float] = js['height']
 
-class CelebrityFaceLandmarksCoordinateLandmarksProperty:
-    """
-    The cooridnate of a landmark.
-
-    Attributes
-    ----------
-    x: Union[:class:`int`, :class:`float`]
-        The ``X`` coordinate of the landmark.
-    y: Union[:class:`int`, :class:`float`]
-        The ``Y`` coordinate of the landmark.
-    """
-
-    def __init__(self, x, y):
-        self.x: typing.Union[int, float] = x
-        self.y: typing.Union[int, float] = y
-
-class CelebrityFaceLandmarksProperty:
-    """
-    The face landmarks in the current face.
-
-    Attributes
-    ----------
-    type: :class:`str`
-        The type of the landmark. There can be a 
-        lot of variety of types e.g ``eyeRight``, 
-        ``eyeLeft``, ``nose``, ``mouthRight``, 
-        ``mouthLeft``, etc.
-    coordinate: :class:`CelebrityFaceLandmarksCoordinateLandmarksProperty`
-        The coordinate of the landmark.
-    """
-
-    def __init__(self, js):
-        self.type: str = js['Type']
-        self.coordinate: CelebrityFaceLandmarksCoordinateLandmarksProperty = CelebrityFaceLandmarksCoordinateLandmarksProperty(js['X'], js['Y'])
-
-class CelebrityFacePose:
-    """
-    The pose of the face, from Roll, Yaw and Pitch.
-
-    Attributes
-    ----------
-    roll: Union[:class:`int`, :class:`float`]
-        The roll of the face.
-    yaw: Union[:class:`int`, :class:`float`]
-        The yaw of the face.
-    pitch: Union[:class:`int`, :class:`float`]
-        The pitch of the face.
-    """
-
-    def __init__(self, js):
-        self.roll: typing.Union[int, float] = js['Roll']
-        self.yaw: typing.Union[int, float] = js['Yaw']
-        self.pitch: typing.Union[int, float] = js['Pitch']
-
-class CelebrityFaceQuality:
-    """
-    The quality of the face.
-
-    Attributes
-    ----------
-    brightness: Union[:class:`int`, :class:`float`]
-        The brightness of the face.
-    sharpness: Union[:class:`int`, :class:`float`]
-        The sharpness of the face.
-    """
-
-    def __init__(self, js):
-        self.brightness: typing.Union[int, float] = js['Brightness']
-        self.sharpness: typing.Union[int, float] = js['Sharpness']
-
-class CelebrityFaceEmotion:
-    """
-    The emotion of the face.
-
-    Attributes
-    ----------
-    type: :class:`str`
-        The emotion type/name.
-    confidence: Union[:class:`int`, :class:`float`]
-        The confidence of the emotion.
-    """
-
-    def __init__(self, js):
-        self.type: str = js['Type']
-        self.confidence: typing.Union[int, float] = js['Confidence']
-
-class CelebrityFaceSmile:
-    """
-    Represents the smile that the celebrity is having, if any.
-
-    Attributes
-    ----------
-    value: :class:`bool`
-        Represents if the celebrity is smiling or not.
-    confidence: Union[:class:`int`, :class:`float`]
-        The confidence of the celebrity is smiling.
-    """
-
-    def __init__(self, js):
-        self.value: bool = js['Value']
-        self.confidence: typing.Union[int, float] = js['Confidence']
-
-    def is_smiling(self) -> bool:
-        """:class:`bool`: True if the celebrity is smiling, else False."""
-        return self.value is True
-
-class CelebrityFaceProperty:
-    """
-    The Face object.
-
-    Attributes
-    ----------
-    bounding_box: :class:`CelebrityFaceBoundingBoxProperty`
-        The bounding box of the Celebrity's face.
-    confidence: Union[:class:`int`, :class:`float`]
-        The confidence of the face properties.
-    landmarks: List[CelebrityFaceLandmarksProperty]
-        The landmarks in the face.
-    pose: :class:`CelebrityFacePose`
-        The pose of the celebrity.
-    quality: :class:`CelebrityFaceQuality`
-        The quality of the face
-    emotions: List[:class:`CelebrityFaceEmotion`]
-        The emotions of the face.
-    smile: :class:`CelebrityFaceSmile`
-        Represents the smile that the celebrity is having.
-    """
-    
-    def __init__(self, js):
-        self.bounding_box: CelebrityFaceBoundingBoxProperty = CelebrityFaceBoundingBoxProperty(js['BoundingBox'])
-        self.confidence: typing.Union[int, float] = js['Confidence']
-        self.landmarks: typing.List[CelebrityFaceLandmarksProperty] = [CelebrityFaceLandmarksProperty(landmark) for landmark in js['Landmarks']]
-        self.pose: CelebrityFacePose = CelebrityFacePose(js['Pose'])
-        self.quality: CelebrityFaceQuality = CelebrityFaceQuality(js['Quality'])
-        self.emotions: typing.List[CelebrityFaceEmotion] = [CelebrityFaceEmotion(emotion) for emotion in sorted(js['Emotions'], key=lambda d: d['Confidence'])]
-        self.smile: CelebrityFaceSmile = CelebrityFaceSmile(js['Smile'])
 
 class CelebrityResult(OpenRobotAPIBaseResult):
     """
@@ -373,26 +281,21 @@ class CelebrityResult(OpenRobotAPIBaseResult):
     
     Attributes
     ----------
-    confidence: Union[:class:`int`, :class:`float`]
-        The match confidence for the recognized celebrity.
-    urls: List[:class:`str`]
-        A list of URLs representing the author.
     name: :class:`str`
-        The name of the detected celebrity.
-    gender: Optional[:class:`str`]
-        The gender of the celebrity.
+        The name of the Celebrity.
+    confidence: Union[:class:`int`, :class:`float`]
+        The confidence of the Celebrity.
     face: :class:`CelebrityFaceProperty`
-        The face object.
+        The face rectangle of the Celebrity.
     """
-    
+
     def __init__(self, js):
         super().__init__(js)
 
-        self.confidence: typing.Union[int, float] = js['Confidence']
-        self.urls: typing.List[str] = js['URLs']
-        self.name: str = js['Name']
-        self.gender: typing.Optional[str] = js['Gender'] # TODO: Maybe make this an enum e.g Gender.female or Gender.male
-        self.face: CelebrityFaceProperty = CelebrityFaceProperty(js['Face'])
+        self.name: str = js['name']
+        self.confidence: typing.Union[int, float] = js['confidence']
+        self.face_rectangle: CelebrityFaceRectangle = CelebrityFaceRectangle(js['face_rectangle'])
+
 
 class SpeechToTextResult(OpenRobotAPIBaseResult):
     """
@@ -413,6 +316,7 @@ class SpeechToTextResult(OpenRobotAPIBaseResult):
         self.text: str = js['text']
         self.duration: typing.Union[int, float] = js['duration']
 
+
 class TextToSpeechResult(OpenRobotAPIBaseResult):
     """
     The result of /api/speech/text-to-speech endpoint.
@@ -427,6 +331,7 @@ class TextToSpeechResult(OpenRobotAPIBaseResult):
         super().__init__(js)
 
         self.url: str = js['url']
+
 
 class TextToSpeechSupportLanguage:
     """
@@ -443,6 +348,7 @@ class TextToSpeechSupportLanguage:
     def __init__(self, js):
         self.code: str = js.get('code')
         self.name: str = js.get('name')
+
 
 class TextToSpeechSupportVoice:
     """
@@ -463,8 +369,10 @@ class TextToSpeechSupportVoice:
     def __init__(self, js):
         self.gender: str = js.get('Gender')
         self.id: str = js.get('Id')
-        self.language: TextToSpeechSupportLanguage = TextToSpeechSupportLanguage({'code': js.get('LanguageCode'),'name': js.get('LanguageName')})
+        self.language: TextToSpeechSupportLanguage = TextToSpeechSupportLanguage(
+            {'code': js.get('LanguageCode'), 'name': js.get('LanguageName')})
         self.name: str = js.get('Name')
+
 
 class TextToSpeechSupportResult(OpenRobotAPIBaseResult):
     """
@@ -484,6 +392,7 @@ class TextToSpeechSupportResult(OpenRobotAPIBaseResult):
         self.languages: typing.List[str] = js['languages']
         self.voices: typing.List[TextToSpeechSupportVoice] = [TextToSpeechSupportVoice(voice) for voice in js['voices']]
 
+
 class OCRResult(OpenRobotAPIBaseResult):
     """
     The result of /api/ocr endpoint.
@@ -493,11 +402,12 @@ class OCRResult(OpenRobotAPIBaseResult):
     text: :class:`str`
         The OCR Result.
     """
-    
+
     def __init__(self, js):
         super().__init__(js)
 
         self.text: str = js['text']
+
 
 class TranslateResult(OpenRobotAPIBaseResult):
     """
@@ -514,7 +424,7 @@ class TranslateResult(OpenRobotAPIBaseResult):
     before: :class:`str`
         The original text.
     """
-    
+
     def __init__(self, js):
         super().__init__(js)
 

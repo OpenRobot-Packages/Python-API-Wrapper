@@ -17,7 +17,9 @@ except:
         from urllib.parse import quote
     except:
         quote = lambda s: s
-        warnings.warn('urllib.parse.quote_plus and urllib.parse.quote cannot be found. Things might not be parsed well.')
+        warnings.warn(
+            'urllib.parse.quote_plus and urllib.parse.quote cannot be found. Things might not be parsed well.')
+
 
 class AsyncClient:
     """Async Client for OpenRobot API.
@@ -40,7 +42,7 @@ class AsyncClient:
     tries: Optional[:class:`int`]
         The number of tries to execute a request to the API This is to. 
         handle 429s. This does not affect anything if ``handle_ratelimit``
-        is ``False``. If this is ``None``, it will go infinitely and you
+        is ``False``. If this is ``None``, it will go infinitely, and you
         might get Temp-Banned by Cloudflare. Defaults to ``5``.
 
     Attributes
@@ -53,19 +55,23 @@ class AsyncClient:
         The session used. ``None`` if not specified.
     """
 
-    def __init__(self, token: str = 'I-Am-Testing', *, session: aiohttp.ClientSession = None, loop: asyncio.AbstractEventLoop = None, ignore_warning: bool = False, handle_ratelimit: bool = True, tries: int = 5):
+    def __init__(self, token: str = 'I-Am-Testing', *, session: aiohttp.ClientSession = None,
+                 loop: asyncio.AbstractEventLoop = None, ignore_warning: bool = False, handle_ratelimit: bool = True,
+                 tries: int = 5):
         token = token or get_token_from_file()
 
         if not token:
             raise NoTokenProvided()
         elif token == 'I-Am-Testing' and not ignore_warning:
-            warnings.warn('Using I-Am-Testing token will only let you 5 requests/day (UTC based, will reset on 00:00 UTC) for all `/api` methods and will raise an `openrobot.api_wrapper.error.Forbidden` after you have reached your limit.')
+            warnings.warn(
+                'Using I-Am-Testing token will only let you 5 requests/day (UTC based, will reset on 00:00 UTC) for all `/api` methods and will raise an `openrobot.api_wrapper.error.Forbidden` after you have reached your limit.')
 
         self.token: str = str(token)
 
         self.loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
-        self.session: typing.Optional[aiohttp.ClientSession] = session if isinstance(session, aiohttp.ClientSession) else None
+        self.session: typing.Optional[aiohttp.ClientSession] = session if isinstance(session,
+                                                                                     aiohttp.ClientSession) else None
 
         if self.session:
             self.session._loop = self.loop
@@ -76,7 +82,7 @@ class AsyncClient:
 
     # Important and internal methods, but should be used un-regularly by the User itself.
 
-    def _get_authorization_headers(self, token: str = None, *, header = True):
+    def _get_authorization_headers(self, token: str = None, *, header=True):
         token = str(token or self.token)
         if header is False:
             return f'token={token}'
@@ -102,13 +108,14 @@ class AsyncClient:
         if not url.startswith('api/'):
             url = url[4:]
 
-        if not re.match(rf'^http[s]?://[api.openrobot.xyz|lyrics.ayomerdeka.com]/', url) and not kwargs.pop('no_url_regex', False):
+        if not re.match(rf'^http[s]?://[api.openrobot.xyz|lyrics.ayomerdeka.com]/', url) and not kwargs.pop(
+                'no_url_regex', False):
             url = ('https://api.openrobot.xyz/api' + url)
         else:
             raise TypeError('URL is not a valid HTTP/HTTPs URL.')
 
         tries = int(self.tries) if self.tries is not None else None
-        
+
         while tries is None or tries > 0:
             if self.session:
                 async with self.session.request(method, url, **kwargs) as resp:
@@ -135,7 +142,9 @@ class AsyncClient:
                         try:
                             await asyncio.sleep(int(resp.headers['Retry-After']))
                         except KeyError as e:
-                            raise KeyError('Retry-After header is not present.') from e # this probably wont trigger, but either way we still need to handle it, right?
+                            raise KeyError(
+                                'Retry-After header is not present.') from e  # this probably won't trigger, but
+                            # either way we still need to handle it, right?
 
                         if tries:
                             tries -= 1
@@ -187,12 +196,13 @@ class AsyncClient:
                             cls.response = resp
 
                             raise cls
-        
+
         raise TooManyRequests(resp, js)
 
     # Methods to query to API:
 
-    async def text_generation(self, text: str, *, max_length: typing.Optional[int] = None, num_return: typing.Optional[int] = 1) -> TextGenerationResult:
+    async def text_generation(self, text: str, *, max_length: typing.Optional[int] = None,
+                              num_return: typing.Optional[int] = 1) -> TextGenerationResult:
         """|coro|
 
         Text Generation/Completion. This uses the /api/text-generation endpoint.
@@ -221,7 +231,8 @@ class AsyncClient:
             The text generation result returned by the API.
         """
 
-        js = await self._request('POST', '/api/text-generation', data={'text': text, 'max_length': max_length, 'num_return': num_return})
+        js = await self._request('POST', '/api/text-generation',
+                                 data={'text': text, 'max_length': max_length, 'num_return': num_return})
         return TextGenerationResult(js)
 
     async def text_generation_get(self, task_id: str) -> TextGenerationResult:
@@ -308,7 +319,8 @@ class AsyncClient:
         js = await self._request('GET', f'/api/sentiment/{quote(task_id)}')
         return SentimentResult(js)
 
-    async def summarization(self, text: str, *, max_length: typing.Optional[int] = None, min_length: typing.Optional[int] = 1) -> SummarizationResult:
+    async def summarization(self, text: str, *, max_length: typing.Optional[int] = None,
+                            min_length: typing.Optional[int] = 1) -> SummarizationResult:
         """|coro|
 
         Summarizes a text. This uses the /api/summarization endpoint.
@@ -337,7 +349,8 @@ class AsyncClient:
             The summarization result returned by the API.
         """
 
-        js = await self._request('POST', '/api/summarization', data={'text': text, 'max_length': max_length, 'min_length': min_length})
+        js = await self._request('POST', '/api/summarization',
+                                 data={'text': text, 'max_length': max_length, 'min_length': min_length})
         return SummarizationResult(js)
 
     async def summarization_get(self, task_id: str) -> SummarizationResult:
@@ -392,19 +405,19 @@ class AsyncClient:
         :class:`LyricResult`
             The Lyrics Result returned by the API.
         """
-        
+
         js = await self._request('GET', f'/api/lyrics/{quote(query)}', return_on=[404, 200])
         return LyricResult(js)
 
-    async def nsfw_check(self, url: str) -> NSFWCheckResult:
+    async def nsfw_check(self, source: typing.Union[bytes, io.BytesIO]) -> NSFWCheckResult:
         """|coro|
         
         Queries an NSFW Check to the API.
 
         Parameters
         ----------
-        url: :class:`str`
-            The Image URL to check for.
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
+            The image to be checked.
 
         Raises
         ------
@@ -421,18 +434,27 @@ class AsyncClient:
             The NSFW Check Result returned by the API.
         """
 
-        js = await self._request('GET', '/api/nsfw-check', params={'url': url})
+        if isinstance(source, bytes):
+            source = io.BytesIO(source)
+
+        if not isinstance(source, io.BytesIO):
+            raise TypeError('source must be a URL or BytesIO.')
+
+        data = aiohttp.FormData()
+        data.add_field('file', source)
+
+        js = await self._request('GET', '/api/nsfw-check', data=data)
         return NSFWCheckResult(js)
 
-    async def celebrity(self, url: str) -> typing.List[CelebrityResult]:
+    async def celebrity(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[CelebrityResult]:
         """|coro|
         
         Detects the celebrities in the image.
 
         Parameters
         ----------
-        url: :class:`str`
-            The Image URL.      
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
+            The source of the image.
 
         Raises
         ------
@@ -448,18 +470,27 @@ class AsyncClient:
         List[:class:`CelebrityResult`]
             The celebrities detected.
         """
-        
-        js = await self._request('GET', '/api/celebrity', params={'url': url})
-        return [CelebrityResult(data) for data in js['detectedFaces']]
 
-    async def ocr(self, source: typing.Union[str, io.BytesIO]) -> OCRResult:
+        if isinstance(source, bytes):
+            source = io.BytesIO(source)
+
+        if not isinstance(source, io.BytesIO):
+            raise TypeError('source must be a URL or BytesIO.')
+
+        data = aiohttp.FormData()
+        data.add_field('file', source)
+
+        js = await self._request('POST', '/api/celebrity', data=data)
+        return [CelebrityResult(data) for data in js['celebrities']]
+
+    async def ocr(self, source: typing.Union[bytes, io.BytesIO]) -> OCRResult:
         """|coro|
         
-        Reads text from a image.
+        Reads text from an image.
 
         Parameters
         ----------
-        source: Union[:class:`str`, :class:`io.BytesIO`]
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
             The URL/Bytes of the image.
 
         Raises
@@ -477,15 +508,16 @@ class AsyncClient:
             The OCR/Text found.
         """
 
-        if isinstance(source, str):
-            js = await self._request('POST', '/api/ocr', params={'url': source})
-        elif isinstance(source, io.BytesIO):
-            data = aiohttp.FormData()
-            data.add_field('file', source)
+        if isinstance(source, bytes):
+            source = io.BytesIO(source)
 
-            js = await self._request('POST', '/api/ocr', data=data)
-        else:
-            raise OpenRobotAPIError('source must be a URL or BytesIO.')
+        if not isinstance(source, io.BytesIO):
+            raise TypeError('source must be a URL or BytesIO.')
+
+        data = aiohttp.FormData()
+        data.add_field('file', source)
+
+        js = await self._request('POST', '/api/ocr', data=data)
 
         return OCRResult(js)
 
@@ -494,7 +526,7 @@ class AsyncClient:
         """:class:`Translate`: The Translate client."""
         return Translate(self, True)
 
-    @property
-    def speech(self) -> Speech:
-        """:class:`Speech`: The Speech client."""
-        return Speech(self, True)
+    # @property
+    # def speech(self) -> Speech:
+    #     """:class:`Speech`: The Speech client."""
+    #     return Speech(self, True)
