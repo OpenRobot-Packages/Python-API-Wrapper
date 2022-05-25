@@ -446,7 +446,7 @@ class AsyncClient:
         js = await self._request('POST', '/api/nsfw-check', data=data)
         return NSFWCheckResult(js)
 
-    async def description(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[str]:
+    async def description(self, source: typing.Union[bytes, io.BytesIO]) -> DescriptionResult:
         """|coro|
 
         Gets the description from the API.
@@ -467,8 +467,8 @@ class AsyncClient:
 
         Returns
         -------
-        :class:`List[str]`
-            The description returned by the API.
+        :class:`DescriptionResult`
+            The description result returned by the API.
         """
 
         if isinstance(source, bytes):
@@ -482,7 +482,7 @@ class AsyncClient:
 
         js = await self._request('POST', '/api/description', data=data)
 
-
+        return DescriptionResult(js)
 
     async def celebrity(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[CelebrityResult]:
         """|coro|
