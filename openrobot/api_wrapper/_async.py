@@ -438,7 +438,7 @@ class AsyncClient:
             source = io.BytesIO(source)
 
         if not isinstance(source, io.BytesIO):
-            raise TypeError('source must be a URL or BytesIO.')
+            raise TypeError('source must be a bytes or BytesIO.')
 
         data = aiohttp.FormData()
         data.add_field('file', source)
@@ -475,7 +475,7 @@ class AsyncClient:
             source = io.BytesIO(source)
 
         if not isinstance(source, io.BytesIO):
-            raise TypeError('source must be a URL or BytesIO.')
+            raise TypeError('source must be a bytes or BytesIO.')
 
         data = aiohttp.FormData()
         data.add_field('file', source)
@@ -512,7 +512,7 @@ class AsyncClient:
             source = io.BytesIO(source)
 
         if not isinstance(source, io.BytesIO):
-            raise TypeError('source must be a URL or BytesIO.')
+            raise TypeError('source must be a bytes or BytesIO.')
 
         data = aiohttp.FormData()
         data.add_field('file', source)
