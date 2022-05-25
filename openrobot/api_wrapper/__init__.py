@@ -8,4 +8,4 @@ from .utils import *
 
 from . import _async, _sync, translate, results, error, speech, utils
 
-__version__ = '0.5.0.1'
+__version__ = '0.5.0.2'

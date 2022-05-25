@@ -446,6 +446,44 @@ class AsyncClient:
         js = await self._request('POST', '/api/nsfw-check', data=data)
         return NSFWCheckResult(js)
 
+    async def description(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[str]:
+        """|coro|
+
+        Gets the description from the API.
+
+        Parameters
+        ----------
+        source: Union[:class:`bytes`, :class:`io.BytesIO`]
+            The image to be checked.
+
+        Raises
+        ------
+        :exc:`Forbidden`
+            API Returned a 403 HTTP Status Code.
+        :exc:`BadRequest`
+            API Returned a 400 HTTP Status Code.
+        :exc:`InternalServerError`
+            API Returned a 500 HTTP Status Code.
+
+        Returns
+        -------
+        :class:`List[str]`
+            The description returned by the API.
+        """
+
+        if isinstance(source, bytes):
+            source = io.BytesIO(source)
+
+        if not isinstance(source, io.BytesIO):
+            raise TypeError('source must be a bytes or BytesIO.')
+
+        data = aiohttp.FormData()
+        data.add_field('file', source)
+
+        js = await self._request('POST', '/api/description', data=data)
+
+
+
     async def celebrity(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[CelebrityResult]:
         """|coro|
         

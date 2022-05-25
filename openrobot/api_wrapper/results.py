@@ -252,6 +252,42 @@ class NSFWCheckResult(OpenRobotAPIBaseResult):
         self.gore = NSFWCheckGore(js['gore'])
 
 
+class DescriptionCaption:
+    """
+    The caption of the image
+
+    Attributes
+    ----------
+    text: :class:`str`
+        The text of the caption.
+    confidence: :class:`float`
+        The confidence of the caption.
+    """
+
+    def __init__(self, js):
+        self.text: str = js['text']
+        self.confidence: float = js['confidence']
+
+
+class DescriptionResult(OpenRobotAPIBaseResult):
+    """
+    The result of the /api/description endpoint.
+
+    Attributes
+    ----------
+    tags: List[:class:`str`]
+        The tags of the image.
+    captions: List[:class:`DescriptionCaption`]
+        The captions generated for the image
+    """
+
+    def __init__(self, js):
+        super().__init__(js)
+
+        self.tags = js['tags']
+        self.captions = [DescriptionCaption(x) for x in js['captions']]
+
+
 class CelebrityFaceRectangle:
     """
     The Celebrity's Face Rectangle (Bounding Box).
