@@ -443,7 +443,7 @@ class AsyncClient:
         data = aiohttp.FormData()
         data.add_field('file', source)
 
-        js = await self._request('GET', '/api/nsfw-check', data=data)
+        js = await self._request('POST', '/api/nsfw-check', data=data)
         return NSFWCheckResult(js)
 
     async def celebrity(self, source: typing.Union[bytes, io.BytesIO]) -> typing.List[CelebrityResult]:
