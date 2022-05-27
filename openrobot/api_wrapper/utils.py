@@ -44,7 +44,7 @@ def json_or_text(response, *, sync=False):
             text = await response.text(encoding='utf-8')
 
             try:
-                if response.headers['content-type'] == 'application/json':
+                if response.content_type == 'application/json':
                     try:
                         return await response.json()
                     except:
