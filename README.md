@@ -1,3 +1,8 @@
+# ⚠️ WARNING ⚠️
+OpenRobot API is no longer available, in result of this repository being archived.
+
+For a current API replacement of OpenRobot's API, Take a look at [Yoda API](https://api.yodabot.xyz).
+
 # OpenRobot API Wrapper
 Welcome to the official library of OpenRobot API Wrapper, in Python.
 
